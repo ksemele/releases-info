@@ -1,0 +1,18 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: releases-info-scraper
+  namespace: default
+  labels:
+    app: releases-info-scraper
+    managed-by: manual
+    owner: akrugliak
+spec:
+  serviceAccountName: releases-info-scraper-sa
+  containers:
+    - name: releases-info-scraper
+      image: docker.io/library/scraper-test:0.1.0
+      resources: {}
+      imagePullPolicy: IfNotPresent
+  restartPolicy: Never
