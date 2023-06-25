@@ -3,11 +3,11 @@ from kubernetes import client, config
 
 
 try:
-    # local kubeconfig (on laptop)
-    config.load_kube_config()
-except ex:
     # use current context (in Pod)
     config.load_incluster_config()
+except:
+    # local kubeconfig (on laptop)
+    config.load_kube_config()
 
 
 v1 = client.CoreV1Api()
@@ -27,24 +27,6 @@ for pod in pod_list.items:
             image = container.image
         unique_images.add(image)
 
-for image in sorted(unique_images):
-    # print(image)
-    pass
-
-# print("services:")
-# for image in unique_images:
-#     print(f"  # {image}")
-#     if image.startswith('docker.io/') and image.count('/') == 2:
-#         repo, tag = image.split(':')
-#         print(f"  {repo.split('/')[-1]}")
-#         print(f"    github:")
-#         print(f"    owner: {repo.split('/')[1]}")
-#         print(f"    repo: {repo.split('/')[2]}")
-#         print(f"  version: {tag}")
-#     else:
-#         print(f"  # registry [{image.split('/')[0]}] UNSUPPORTED now")
-#     print(f"")
-
 def generate_config_yaml(unique_images):
     result = "services:\n"
     for image in unique_images:
@@ -62,7 +44,7 @@ def generate_config_yaml(unique_images):
     return result
 
 config_yaml = generate_config_yaml(unique_images=unique_images)
-# print(config_yaml)
+print(config_yaml)
 
 def save_data_to_file(data, filename):
     try:
