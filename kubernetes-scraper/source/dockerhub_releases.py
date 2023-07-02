@@ -87,17 +87,21 @@ def _get_tag_release_date(tag, releases):
     return tag_release_date
 
 
-config = fetch_config_yaml('config.yaml')
-if config:
-    services = config.get('services', {})
-    service_list = [{'name': service, 'details': details} for service, details in services.items()]
+services = fetch_config_yaml('config.yaml')
+if services:
+    # services = config.values()
+    # print(services)
+    # print()
+    # service_list = [{'name': service, 'details': details} for service, details in services]
+
     # dockerhub_list = [{'name': service, 'details': details} for service, details in services.items() if 'dockerhub' in details]  # todo
     
     print("")
     print("Service List:")
-    for service in service_list:
-        current_tag = service['details']['version']
-        repo = f"{service['details']['dockerhub']['owner']}/{service['details']['dockerhub']['repo']}"
+    for service, data in services.items():
+        current_tag = data.get('version')
+        dockerhub = data.get('dockerhub')
+        repo = f"{data.get('dockerhub').get('owner')}/{data.get('dockerhub').get('repo')}"
         service_releases = _fetch_all_releases(docker_hub_repository=repo)
         # print(f"SEARCH: [{current_tag}]")
         if service_releases:
@@ -105,10 +109,10 @@ if config:
             # Maybe 'latest' will be more correct 
             latest_tag_date = _dockerhub_date_format(service_releases['results'][0]['last_updated'])
 
-            if _tag_exist_in_releases(tag=service['details']['version'],releases=service_releases):                
+            if _tag_exist_in_releases(tag=current_tag,releases=service_releases):                
                 current_tag_date = _get_tag_release_date(tag=current_tag, releases=service_releases)
                 days_of_missed_releases = _days_of_missed_releases(current_tag_date=current_tag_date,latest_tag_date=latest_tag_date)
-                print(f"{current_tag}\t{current_tag_date} -> {service_releases['results'][0]['name']}\t{latest_tag_date}\toutdated: [{days_of_missed_releases}] days")
+                print(f"{service}:{current_tag}\t{current_tag_date} -> {service_releases['results'][0]['name']}\t{latest_tag_date}\toutdated: [{days_of_missed_releases}] days")
                 pass
 
     # print("\nDockerhub List:")
