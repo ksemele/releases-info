@@ -1,36 +1,13 @@
 import os
 import requests
 import sys
+import yaml
 from datetime import datetime
 
 
 docker_hub_registry = "https://hub.docker.com"
-# docker_hub_repository = "library/nginx"
-
-token = os.environ["DOCKER_PASSWORD"]
-
-version_tag = "stable-alpine3.17"
-# version_tag = "latest"
-number_of_load_tags = 100 # 100 is max for free API
-
-# response = requests.get(f"{docker_hub_registry}/v2/repositories/{docker_hub_repository}/tags?ordering=last_updated&page_size={number_of_load_tags}", headers={"Authorization": f"Bearer {token}"})
-
-# current_tag_found = False
-# tags = response.json()["results"]
-# formatted_tags = [{"name": tag["name"], "last_updated": datetime.strptime(tag["last_updated"], "%Y-%m-%dT%H:%M:%S.%fZ").strftime("%Y-%m-%d")} for tag in tags]
-# for tag in formatted_tags:
-#     if tag['name'] == version_tag:
-#         print(f"{tag['name']}\t{tag['last_updated']} <- current tag")
-#         current_tag_found = True
-#         break
-#     else:
-#         print(f"{tag['name']}\t{tag['last_updated']}")
-
-# if current_tag_found == False:
-#     print(f'Tag [{version_tag}] not found in last [{number_of_load_tags}] tags')
-
-## config reader
-import yaml
+token = os.environ.get("DOCKER_PASSWORD")
+number_of_load_tags = os.environ.get("DOCKER_NUMBER_OF_LOAD_TAGS", 100)  # 100 is max for free API
 
 
 def fetch_config_yaml(file_path):
@@ -44,9 +21,8 @@ def fetch_config_yaml(file_path):
             return None
 
 
-
 def _fetch_all_releases(docker_hub_repository) -> dict:
-    print(docker_hub_repository)
+    # print(docker_hub_repository)
     url_releases = f"{docker_hub_registry}/v2/repositories/{docker_hub_repository}/tags?ordering=last_updated&page_size={number_of_load_tags}"
     headers = {"Authorization": f"Bearer {token}"}
 
@@ -58,7 +34,6 @@ def _fetch_all_releases(docker_hub_repository) -> dict:
     except response.Error as e:
         print(f'ERROR in _fetch_all_releases(): {e}')
         return None
-
     return response.json()
 
 
@@ -66,39 +41,24 @@ def _dockerhub_date_format(date):
     return datetime.strptime(date, "%Y-%m-%dT%H:%M:%S.%fZ").strftime("%d.%m.%Y")
 
 
-def _tag_exist_in_releases(tag, releases):
-    # print(releases)
-    tag_found = False
+def _get_formatted_releases(releases):
     tags = releases["results"]
-    formatted_tags = [{"name": t["name"], "last_updated": _dockerhub_date_format(t["last_updated"])} for t in tags]
+    formatted_releases = [{"name": t["name"], "last_updated": _dockerhub_date_format(t["last_updated"])} for t in tags]
 
-    # for item in releases["results"]:
-    #     images = item['name']
-    #     digest = item['digest']
-    #     print("Images:", images)
-    #     print("Digest:", digest)
-    #     print("---")
-    # last_release_date = formatted_tags[0]['last_updated']
-
-    for t in formatted_tags:
-        if t['name'] == tag:
-            print(f"{t['name']}\t{t['last_updated']} <- current tag")
-            tag_found = True
-            break
-        else:
-            # print(f"{t['name']}\t{t['last_updated']}")
-            pass
-    if tag_found == False:
-        print(f"[{tag}] NOT FOUND in last [{len(releases['results'])}] releases.")
-    return tag_found
+    return formatted_releases
 
 
+def _tag_exist_in_releases(tag, releases):
+    return any(t["name"] == tag for t in releases["results"])
+    
 
 def _days_of_missed_releases(current_tag_date, latest_tag_date):
     try:
-        # latest_tag_date = _(latest_tag_date, "%d.%m.%Y")
-        # current_tag_date = datetime.datetime.strptime(current_tag_date, "%d.%m.%Y")
-        days_delta = (latest_tag_date - current_tag_date).days
+        date_current = datetime.strptime(current_tag_date, "%d.%m.%Y")
+        date_latest = datetime.strptime(latest_tag_date, "%d.%m.%Y")
+
+        difference =  date_latest - date_current
+        days_delta = difference.days
     except TypeError:
         days_delta = "unidentified"
     except ValueError:
@@ -106,37 +66,49 @@ def _days_of_missed_releases(current_tag_date, latest_tag_date):
     return days_delta
 
 
-def _number_of_missed_releases(all_releses, current_tag):
+# idk how correct count this... 
+def _number_of_missed_releases(releases, current_tag):
     pass
+
+
+# will return object or None
+def _get_tag_object(tag, releases):
+    return next((t for t in releases['results'] if t['name'] == tag), None)
+
+
+def _get_tag_release_date(tag, releases):
+    tag_release_date = None
+    if _tag_exist_in_releases(tag=tag, releases=releases):
+        current_tag = _get_tag_object(tag, releases)
+        # tag_release_date = current_tag['last_updated']
+        tag_release_date = _dockerhub_date_format(current_tag['last_updated'])
+    else:
+        raise ValueError(f"[{tag}] Not exist in releases")
+    return tag_release_date
+
 
 config = fetch_config_yaml('config.yaml')
 if config:
     services = config.get('services', {})
     service_list = [{'name': service, 'details': details} for service, details in services.items()]
-    dockerhub_list = [{'name': service, 'details': details} for service, details in services.items() if 'dockerhub' in details]  # todo
-    # registry_list = [{'name': service, 'details': details} for service, details in services.items() if 'registry' in details]
+    # dockerhub_list = [{'name': service, 'details': details} for service, details in services.items() if 'dockerhub' in details]  # todo
     
     print("")
     print("Service List:")
     for service in service_list:
-        # print(f"- Name: {service['name']}")
-        # print(f"  Details: {service['details']}")
-        # print()
+        current_tag = service['details']['version']
         repo = f"{service['details']['dockerhub']['owner']}/{service['details']['dockerhub']['repo']}"
-        # try:
-            # _fetch_all_releases(docker_hub_repository=repo)
-        # except:
-            # print("error in _fetch")
         service_releases = _fetch_all_releases(docker_hub_repository=repo)
-        print(f"SEARCH: [{service['details']['version']}]")
-        
+        # print(f"SEARCH: [{current_tag}]")
         if service_releases:
+            # I use first elem of list because I get tags sorted in _fetch_all_releases()
+            # Maybe 'latest' will be more correct 
             latest_tag_date = _dockerhub_date_format(service_releases['results'][0]['last_updated'])
 
-            if _tag_exist_in_releases(tag=service['details']['version'],releases=service_releases):
-                current_tag_date = service_releases.get(service['details']['version'])
+            if _tag_exist_in_releases(tag=service['details']['version'],releases=service_releases):                
+                current_tag_date = _get_tag_release_date(tag=current_tag, releases=service_releases)
                 days_of_missed_releases = _days_of_missed_releases(current_tag_date=current_tag_date,latest_tag_date=latest_tag_date)
-                print(f"{current_tag_date} {latest_tag_date} DAYS: {days_of_missed_releases}")
+                print(f"{current_tag}\t{current_tag_date} -> {service_releases['results'][0]['name']}\t{latest_tag_date}\toutdated: [{days_of_missed_releases}] days")
                 pass
 
     # print("\nDockerhub List:")

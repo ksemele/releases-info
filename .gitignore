@@ -9,7 +9,6 @@ __pycache__/
 .pytest.xml
 
 kubernetes-scraper/scraper-test
-kubernetes-scraper/config.yaml
 kubernetes-scraper/*.sh
 kubernetes-scraper/*.txt
 kubernetes-scraper/manifests/test-pod.yaml
