@@ -1,0 +1,22 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: releases-info-scraper
+  namespace: default
+spec:
+  schedule: "30 0 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: releases-info-scraper-sa
+          containers:
+            - name: releases-info-scraper
+              image: docker.io/library/scraper-test:0.1.2
+              resources:
+                limits:
+                  cpu: "0.1"
+                  memory: "128Mi"
+              imagePullPolicy: IfNotPresent
+          restartPolicy: Never
