@@ -13,7 +13,7 @@ spec:
           serviceAccountName: releases-info-scraper-sa
           containers:
             - name: releases-info-scraper
-              image: docker.io/library/scraper-test:0.1.2
+              image: docker.io/library/scraper-test:0.1.4
               resources:
                 limits:
                   cpu: "0.1"

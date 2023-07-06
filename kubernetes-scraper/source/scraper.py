@@ -62,3 +62,56 @@ def save_data_to_file(data, filename):
 
 filename = 'config.yaml'
 save_data_to_file(config_yaml, filename)
+
+
+def create_or_update_configmap(configmap_name, data, namespace='default'):
+    # config.load_kube_config()
+    api = client.CoreV1Api()
+
+    body = {
+        'apiVersion': 'v1',
+        'kind': 'ConfigMap',
+        'metadata': {
+            'name': configmap_name,
+        },
+        'data': data,
+    }
+
+    try:
+        api.create_namespaced_config_map(namespace=namespace, body=body)
+        print(f"ConfigMap '{configmap_name}' created.")
+    except client.exceptions.ApiException as e:
+        if e.status == 409:  # ConfigMap already exists, update it
+            try:
+                api.patch_namespaced_config_map(name=configmap_name, namespace=namespace, body=body)
+                print(f"ConfigMap '{configmap_name}' updated.")
+            except client.exceptions.ApiException as e:
+                print(f"Failed to update ConfigMap '{configmap_name}': {e}")
+        else:
+            print(f"Failed to create or update ConfigMap '{configmap_name}': {e}")
+
+
+def save_configmap_from_file(configmap_name, filename, namespace='default'):
+    try:
+        with open(filename, 'r') as f:
+            data = {
+                filename: f.read()
+            }
+            create_or_update_configmap(configmap_name, data, namespace)
+    except IOError:
+        print(f"Error reading file: '{filename}'")
+        
+
+# filename = 'config.yaml'
+# configmap_name = 'scraper-configmap'
+# save_configmap_from_file(configmap_name, filename, namespace='default')
+
+# def save_configmap_from_data(configmap_name, data, namespace='default'):
+#     create_or_update_configmap(configmap_name, data, namespace)
+
+# data = {
+#     'key1': 'value1',
+#     'key2': 'value2'
+# }
+# configmap_name = 'scraper-configmap-2'
+# save_configmap_from_data(configmap_name, data, namespace='default')

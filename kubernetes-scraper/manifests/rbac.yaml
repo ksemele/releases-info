@@ -1,4 +1,3 @@
----
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -10,8 +9,8 @@ metadata:
   name: releases-info-scraper-clusterrole
 rules:
 - apiGroups: [""]
-  resources: ["*"]
-  verbs: ["list"]
+  resources: ["pods", "configmaps"]
+  verbs: ["list", "create", "get", "update", "patch"]
 ---
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
