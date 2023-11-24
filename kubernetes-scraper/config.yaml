@@ -1,38 +1,11 @@
-# registry.k8s.io/kube-scheduler:v1.27.3
-# registry [registry.k8s.io] UNSUPPORTED now
+# ghcr.io/fluxcd/notification-controller:v1.1.0
+# registry [ghcr.io] UNSUPPORTED now
 
-# docker.io/nginx/nginx-ingress:3.1.1
-nginx-ingress:
-  dockerhub:
-    owner: nginx
-    repo: nginx-ingress
-  version: 3.1.1
+# quay.io/prometheus-operator/prometheus-operator:v0.68.0
+# registry [quay.io] UNSUPPORTED now
 
-# registry.k8s.io/etcd:3.5.7-0
-# registry [registry.k8s.io] UNSUPPORTED now
-
-# registry.k8s.io/kube-controller-manager:v1.27.3
-# registry [registry.k8s.io] UNSUPPORTED now
-
-# docker.io/library/scraper-test:0.1.2
-scraper-test:
-  dockerhub:
-    owner: library
-    repo: scraper-test
-  version: 0.1.2
-
-# registry.k8s.io/coredns/coredns:v1.10.1
-# registry [registry.k8s.io] UNSUPPORTED now
-
-# docker.io/kindest/local-path-provisioner:v20230511-dc714da8
-local-path-provisioner:
-  dockerhub:
-    owner: kindest
-    repo: local-path-provisioner
-  version: v20230511-dc714da8
-
-# registry.k8s.io/kube-proxy:v1.27.3
-# registry [registry.k8s.io] UNSUPPORTED now
+# ghcr.io/stefanprodan/podinfo:6.5.3
+# registry [ghcr.io] UNSUPPORTED now
 
 # docker.io/nicolaka/netshoot:latest
 netshoot:
@@ -41,6 +14,28 @@ netshoot:
     repo: netshoot
   version: latest
 
+# docker.io/kindest/local-path-provisioner:v20230511-dc714da8
+local-path-provisioner:
+  dockerhub:
+    owner: kindest
+    repo: local-path-provisioner
+  version: v20230511-dc714da8
+
+# registry.k8s.io/kube-apiserver:v1.27.3
+# registry [registry.k8s.io] UNSUPPORTED now
+
+# registry.k8s.io/kube-proxy:v1.27.3
+# registry [registry.k8s.io] UNSUPPORTED now
+
+# registry.k8s.io/kube-scheduler:v1.27.3
+# registry [registry.k8s.io] UNSUPPORTED now
+
+# registry.k8s.io/coredns/coredns:v1.10.1
+# registry [registry.k8s.io] UNSUPPORTED now
+
+# quay.io/prometheus/node-exporter:v1.6.1
+# registry [quay.io] UNSUPPORTED now
+
 # docker.io/kindest/kindnetd:v20230511-dc714da8
 kindnetd:
   dockerhub:
@@ -48,7 +43,10 @@ kindnetd:
     repo: kindnetd
   version: v20230511-dc714da8
 
-# registry.k8s.io/kube-apiserver:v1.27.3
+# registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.10.0
+# registry [registry.k8s.io] UNSUPPORTED now
+
+# registry.k8s.io/etcd:3.5.7-0
 # registry [registry.k8s.io] UNSUPPORTED now
 
 # docker.io/nginx:latest
@@ -57,4 +55,19 @@ nginx:
     owner: library
     repo: nginx
   version: latest
+
+# quay.io/jetstack/version-checker:v0.3.0
+# registry [quay.io] UNSUPPORTED now
+
+# registry.k8s.io/kube-controller-manager:v1.27.3
+# registry [registry.k8s.io] UNSUPPORTED now
+
+# ghcr.io/fluxcd/kustomize-controller:v1.1.1
+# registry [ghcr.io] UNSUPPORTED now
+
+# ghcr.io/fluxcd/source-controller:v1.1.2
+# registry [ghcr.io] UNSUPPORTED now
+
+# ghcr.io/fluxcd/helm-controller:v0.36.2
+# registry [ghcr.io] UNSUPPORTED now
 
