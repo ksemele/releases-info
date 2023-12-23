@@ -22,6 +22,8 @@
 # #         pretty="true")
 # ic(configmap_data)
 
+
+# Example of running Prometheus http server with base metrics
 from prometheus_client import Info
 import random
 import time
@@ -46,6 +48,10 @@ for image in images:
 from prometheus_client import start_http_server
 
 if __name__ == "__main__":
-    start_http_server(8000)
+    PROMETHEUS_PORT = 8000
+    print(
+        f"Start http server with Prometheus metrics: http://localhost:{PROMETHEUS_PORT}"
+    )
+    start_http_server(PROMETHEUS_PORT)
     while True:
         time.sleep(100)
