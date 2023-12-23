@@ -14,3 +14,4 @@ kubernetes-scraper/*.txt
 kubernetes-scraper/manifests/test-pod.yaml
 
 **/venv/
+**/.ruff_cache
