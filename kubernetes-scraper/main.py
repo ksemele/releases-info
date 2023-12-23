@@ -26,8 +26,10 @@ from prometheus_client import Info
 import random
 import time
 
-# Создаем метрику с заданными метками
-image_versions = Info('kubernetes_image_versions', 'Current image versions', ['image_name'])
+# Creating a metric with specified labels
+image_versions = Info(
+    "kubernetes_image_versions", "Current image versions", ["image_name"]
+)
 
 images = [
     "registry.k8s.io/etcd:3.5.7-0",
@@ -38,13 +40,12 @@ images = [
 for image in images:
     image_name, image_version = image.rsplit(":", 1)
 
-    # Устанавливаем значения метрики
-    image_versions.labels(image_name=image_name).info({'version': image_version})
+    # # Setting metric values
+    image_versions.labels(image_name=image_name).info({"version": image_version})
 
 from prometheus_client import start_http_server
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     start_http_server(8000)
     while True:
         time.sleep(100)
-

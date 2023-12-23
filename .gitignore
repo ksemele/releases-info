@@ -12,3 +12,5 @@ kubernetes-scraper/scraper-test
 kubernetes-scraper/*.sh
 kubernetes-scraper/*.txt
 kubernetes-scraper/manifests/test-pod.yaml
+
+**/venv/
