@@ -1,5 +1,6 @@
 from .constants import *
 
+# debug outputs - need to switch off before release
 from icecream import ic
 
 ic.enable()
@@ -16,3 +17,8 @@ except:
 
 
 v1 = client.CoreV1Api()
+
+from prometheus_client import Info
+from prometheus_client import start_http_server
+import random
+import time

@@ -1,4 +1,4 @@
-# from releases_info import *
+from releases_info import *
 
 
 # # ic(constants.CONFIG_NAME)
@@ -23,32 +23,14 @@
 # ic(configmap_data)
 
 
-# Example of running Prometheus http server with base metrics
-from prometheus_client import Info
-import random
-import time
-
-# Creating a metric with specified labels
-image_versions = Info(
-    "kubernetes_image_versions", "Current image versions", ["image_name"]
-)
-
-images = [
+images = [  # placeholder
     "registry.k8s.io/etcd:3.5.7-0",
     "docker.io/nginx:latest",
     "ghcr.io/fluxcd/kustomize-controller:v1.1.1",
 ]
 
-for image in images:
-    image_name, image_version = image.rsplit(":", 1)
-
-    # # Setting metric values
-    image_versions.labels(image_name=image_name).info({"version": image_version})
-
-from prometheus_client import start_http_server
-
 if __name__ == "__main__":
-    PROMETHEUS_PORT = 8000
+    prometheus.generate_metrics(images)
     print(
         f"Start http server with Prometheus metrics: http://localhost:{PROMETHEUS_PORT}"
     )
