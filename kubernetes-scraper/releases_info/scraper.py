@@ -1,5 +1,5 @@
 import re
-from .kubernetes_auth import *
+from .kubernetes import *
 
 # from .setup import ic
 from .setup import *
@@ -98,7 +98,7 @@ def save_data_to_file(data, filename):
         print(f"Error write to file: [{filename}]")
 
 
-def create_or_update_configmap(configmap_name, data, namespace=NAMESPACE):
+def create_or_update_configmap(configmap_name, data, namespace):
     api = client.CoreV1Api()
 
     body = {

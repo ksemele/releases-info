@@ -1,4 +1,4 @@
-from .kubernetes_auth import *
+from .kubernetes import *
 from .scraper import *
 from .dockerhub_releases import *
 from .prometheus import *

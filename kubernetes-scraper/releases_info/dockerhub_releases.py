@@ -4,7 +4,7 @@ import sys
 import yaml
 from datetime import datetime
 import releases_info.constants as const
-from .kubernetes_auth import *
+from .kubernetes import *
 from .setup import ic
 
 
@@ -13,26 +13,6 @@ token = os.environ.get("DOCKER_PASSWORD")
 number_of_load_tags = os.environ.get(
     "DOCKER_NUMBER_OF_LOAD_TAGS", 100
 )  # 100 is max for free API
-
-
-def fetch_configmap(configmap_name, namespace, key):
-    configmap = v1.read_namespaced_config_map(
-        name=configmap_name,
-        namespace=namespace,
-        pretty="true",
-        # allow_watch_bookmarks=allow_watch_bookmarks,
-        # _continue=_continue,
-        # field_selector=field_selector,
-        # label_selector=label_selector,
-        # limit=limit,
-        # resource_version=resource_version,
-        # resource_version_match=resource_version_match,
-        # send_initial_events=send_initial_events,
-        # timeout_seconds=timeout_seconds,
-        # watch='true'
-    )
-    # ic(configmap_list)
-    return configmap.data[key]
 
 
 def fetch_config_yaml(file_path):

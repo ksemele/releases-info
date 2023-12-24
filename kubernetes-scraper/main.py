@@ -16,7 +16,7 @@ from releases_info import *
 # configmap_name = "scraper-configmap"
 # create_or_update_configmap_from_file(configmap_name, filename, namespace="default")
 
-# configmap_data = fetch_configmap(configmap_name=CONFIGMAP_NAME, namespace=NAMESPACE, key=filename)
+# configmap_data = fetch_configmap_key(configmap_name=CONFIGMAP_NAME, namespace=NAMESPACE, key=filename)
 # # items = v1.list_namespaced_config_map(
 # #         namespace="default",
 # #         pretty="true")
@@ -35,10 +35,13 @@ if __name__ == "__main__":
 
     data = {"versions": generate_config_yaml_new(images=unique_images)}
     # ic(type(data))
-    create_or_update_configmap(CONFIGMAP_NAME, data)
+    create_or_update_configmap(
+        configmap_name=CONFIGMAP_NAME, data=data, namespace=NAMESPACE
+    )
 
     generate_metrics(unique_images)
-    read_configmap(configmap_name=CONFIGMAP_NAME, namespace=NAMESPACE)
+    versions = fetch_configmap_key(configmap_name=CONFIGMAP_NAME, namespace=NAMESPACE, key="versions")
+    # ic(versions)
     print(
         f"Start http server with Prometheus metrics: http://localhost:{PROMETHEUS_PORT}"
     )
