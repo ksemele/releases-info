@@ -23,14 +23,22 @@ from releases_info import *
 # ic(configmap_data)
 
 
-images = [  # placeholder
-    "registry.k8s.io/etcd:3.5.7-0",
-    "docker.io/nginx:latest",
-    "ghcr.io/fluxcd/kustomize-controller:v1.1.1",
-]
+# images = [  # placeholder
+#     "registry.k8s.io/etcd:3.5.7-0",
+#     "docker.io/nginx:latest",
+#     "ghcr.io/fluxcd/kustomize-controller:v1.1.1",
+# ]
 
 if __name__ == "__main__":
-    prometheus.generate_metrics(images)
+    unique_images = get_unique_images()
+    # ic(unique_images)
+
+    data = {"versions": generate_config_yaml_new(images=unique_images)}
+    # ic(type(data))
+    create_or_update_configmap(CONFIGMAP_NAME, data)
+
+    generate_metrics(unique_images)
+    read_configmap(configmap_name=CONFIGMAP_NAME, namespace=NAMESPACE)
     print(
         f"Start http server with Prometheus metrics: http://localhost:{PROMETHEUS_PORT}"
     )

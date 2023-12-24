@@ -1,5 +1,6 @@
 import re
 from .kubernetes_auth import *
+
 # from .setup import ic
 from .setup import *
 
@@ -28,7 +29,7 @@ def get_unique_images():
                 image = container.image
             # sometimes we can find Pod with image like 'nginx'
             # need to add 'latest' tag for that (or throw an exception idk)
-            if ':' not in image:
+            if ":" not in image:
                 image = f"{image}:latest"
             # try:
             #     # print(f"check version of [{image}]:")
@@ -40,9 +41,10 @@ def get_unique_images():
             unique_images.add(image)
     return unique_images
 
-def generate_config_yaml(unique_images):
+
+def generate_config_yaml(images):
     result = ""
-    for image in unique_images:
+    for image in images:
         result += f"# {image}\n"
         # print(f"{image}")  ## todo
         if image.startswith("docker.io/"):
@@ -61,6 +63,30 @@ def generate_config_yaml(unique_images):
         else:
             result += f"# registry [{image.split('/')[0]}] UNSUPPORTED now\n"
         result += "\n"
+    return result
+
+
+def generate_config_yaml_new(images):
+    result = ""
+    for image in images:
+        result += f"{image}\n"
+        # print(f"{image}")  ## todo
+        # if image.startswith("docker.io/"):
+        #     repo, tag = image.split(":")
+        #     result += f"{repo.split('/')[-1]}:\n"
+        #     result += f"  dockerhub:\n"
+        #     if (
+        #         image.count("/") == 1
+        #     ):  # WIP for images like docker.io/nginx:latest - need to use library/nginx instead of registry...
+        #         result += f"    owner: library\n"
+        #         result += f"    repo: {repo.split('/')[1]}\n"
+        #     else:
+        #         result += f"    owner: {repo.split('/')[1]}\n"
+        #         result += f"    repo: {repo.split('/')[2]}\n"
+        #     result += f"  version: {tag}\n"
+        # else:
+        #     result += f"# registry [{image.split('/')[0]}] UNSUPPORTED now\n"
+        # result += "\n"
     return result
 
 
@@ -127,7 +153,7 @@ if __name__ == "__main__":
     config_yaml = generate_config_yaml(unique_images=unique_images)
     print(config_yaml)
     filename = "config.yaml"
-    print(f'{CONFIG_NAME}')
+    print(f"{CONFIG_NAME}")
     save_data_to_file(config_yaml, filename)
 
     # filename = 'config.yaml'

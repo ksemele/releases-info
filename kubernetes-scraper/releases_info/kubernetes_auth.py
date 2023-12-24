@@ -1,4 +1,6 @@
-from kubernetes import client, config
+from kubernetes import client, config#, dynamic
+# from kubernetes.client import api_client
+
 
 try:
     # use current context (in Pod)
@@ -6,6 +8,5 @@ try:
 except:
     # local kubeconfig (on laptop)
     config.load_kube_config()
-
 
 v1 = client.CoreV1Api()
