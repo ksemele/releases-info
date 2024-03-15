@@ -13,6 +13,10 @@ kubernetes-scraper/*.sh
 kubernetes-scraper/*.txt
 kubernetes-scraper/manifests/test-pod.yaml
 
+# Python virtual enviroment
+venv/
+*/venv/
 **/venv/
+*/venv_*/
 kubernetes-scraper/venv
 **/.ruff_cache
