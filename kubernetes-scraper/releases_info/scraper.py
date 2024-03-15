@@ -1,11 +1,9 @@
 import re
 from .kubernetes import *
-
-# from .setup import ic
 from .setup import *
 
 
-def get_unique_images():
+def get_unique_images_from_pods():
     unique_images = {}
 
     pod_list = v1.list_pod_for_all_namespaces(watch=False)
@@ -17,13 +15,10 @@ def get_unique_images():
 
     for pod in pod_list.items:
         for container in pod.spec.containers:
-            # print(container) ##
-            exit
+            ic(container.image)
             # if image in Pod not known - we add default docker.io prefix
             if not re.match(r"^(" + "|".join(repository_list) + ")/", container.image):
-                # print(
-                #     f"Modify to default: {container.image} -> docker.io/{container.image}"
-                # )
+                ic(f"Modify to default: {container.image} -> docker.io/{container.image}")
                 image = f"docker.io/{container.image}"
             else:
                 image = container.image
@@ -31,66 +26,19 @@ def get_unique_images():
             # need to add 'latest' tag for that (or throw an exception idk)
             if ":" not in image:
                 image = f"{image}:latest"
-            # try:
-            #     # print(f"check version of [{image}]:")
-            #     repo, tag = image.split(":")
-            #     # print("OK")
-            # except ValueError:
-            #     image = f"{image}:latest"
-            #     # print(f"new image: [{image}]")
             unique_images.add(image)
     return unique_images
 
 
-def generate_config_yaml(images):
-    result = ""
-    for image in images:
-        result += f"# {image}\n"
-        # print(f"{image}")  ## todo
-        if image.startswith("docker.io/"):
-            repo, tag = image.split(":")
-            result += f"{repo.split('/')[-1]}:\n"
-            result += f"  dockerhub:\n"
-            if (
-                image.count("/") == 1
-            ):  # WIP for images like docker.io/nginx:latest - need to use library/nginx instead of registry...
-                result += f"    owner: library\n"
-                result += f"    repo: {repo.split('/')[1]}\n"
-            else:
-                result += f"    owner: {repo.split('/')[1]}\n"
-                result += f"    repo: {repo.split('/')[2]}\n"
-            result += f"  version: {tag}\n"
-        else:
-            result += f"# registry [{image.split('/')[0]}] UNSUPPORTED now\n"
-        result += "\n"
-    return result
-
-
-def generate_config_yaml_new(images):
+def concat_images_to_str(images):
     result = ""
     for image in images:
         result += f"{image}\n"
-        # print(f"{image}")  ## todo
-        # if image.startswith("docker.io/"):
-        #     repo, tag = image.split(":")
-        #     result += f"{repo.split('/')[-1]}:\n"
-        #     result += f"  dockerhub:\n"
-        #     if (
-        #         image.count("/") == 1
-        #     ):  # WIP for images like docker.io/nginx:latest - need to use library/nginx instead of registry...
-        #         result += f"    owner: library\n"
-        #         result += f"    repo: {repo.split('/')[1]}\n"
-        #     else:
-        #         result += f"    owner: {repo.split('/')[1]}\n"
-        #         result += f"    repo: {repo.split('/')[2]}\n"
-        #     result += f"  version: {tag}\n"
-        # else:
-        #     result += f"# registry [{image.split('/')[0]}] UNSUPPORTED now\n"
-        # result += "\n"
+    ic(type(result))
     return result
 
 
-def save_data_to_file(data, filename):
+def save_str_to_file(data: str, filename: str) -> None:
     try:
         with open(filename, "w") as f:
             f.write(data)
@@ -98,7 +46,7 @@ def save_data_to_file(data, filename):
         print(f"Error write to file: [{filename}]")
 
 
-def create_or_update_configmap(configmap_name, data, namespace):
+def create_or_update_configmap(configmap_name: str, configmap_data, namespace: str) -> None:
     api = client.CoreV1Api()
 
     body = {
@@ -107,7 +55,7 @@ def create_or_update_configmap(configmap_name, data, namespace):
         "metadata": {
             "name": configmap_name,
         },
-        "data": data,
+        "data": configmap_data,
     }
 
     try:
@@ -129,8 +77,8 @@ def create_or_update_configmap(configmap_name, data, namespace):
 def create_or_update_configmap_from_file(configmap_name, filename, namespace=NAMESPACE):
     try:
         with open(filename, "r") as f:
-            data = {filename: f.read()}
-            create_or_update_configmap(configmap_name, data, namespace)
+            configmap_data = {filename: f.read()}
+            create_or_update_configmap(configmap_name, configmap_data, namespace)
     except IOError:
         print(f"Error reading file: '{filename}'")
 
@@ -147,10 +95,10 @@ def create_or_update_configmap_from_file(configmap_name, filename, namespace=NAM
 
 
 if __name__ == "__main__":
-    unique_images = get_unique_images()
+    unique_images = get_unique_images_from_pods()
     # print(unique_images) ## todo
 
-    config_yaml = generate_config_yaml(unique_images=unique_images)
+    config_yaml = concat_images_to_str(images=unique_images)
     print(config_yaml)
     filename = "config.yaml"
     print(f"{CONFIG_NAME}")

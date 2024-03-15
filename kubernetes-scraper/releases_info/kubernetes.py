@@ -30,8 +30,7 @@ def fetch_configmap_key(configmap_name, namespace, key):
             # timeout_seconds=timeout_seconds,
             # watch='true'
         )
+        return configmap.data[key]
     except:
         # todo add except processing
         print(f"Failed to read ConfigMap '{configmap_name}'")
-    
-    return configmap.data[key]

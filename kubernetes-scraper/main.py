@@ -1,3 +1,4 @@
+from os import name
 from releases_info import *
 
 
@@ -30,14 +31,14 @@ from releases_info import *
 # ]
 
 if __name__ == "__main__":
-    unique_images = get_unique_images()
-    # ic(unique_images)
-
-    data = {"versions": generate_config_yaml_new(images=unique_images)}
-    # ic(type(data))
+    unique_images = get_unique_images_from_pods()
+    ic(unique_images)
+    all_images = concat_images_to_str(images=unique_images)
+    configmap_data = {"versions": all_images}
     create_or_update_configmap(
-        configmap_name=CONFIGMAP_NAME, data=data, namespace=NAMESPACE
+        configmap_name=CONFIGMAP_NAME, configmap_data=configmap_data, namespace=NAMESPACE
     )
+    save_str_to_file(data=all_images,filename='config.yaml')
 
     generate_metrics(unique_images)
     versions = fetch_configmap_key(configmap_name=CONFIGMAP_NAME, namespace=NAMESPACE, key="versions")
@@ -48,3 +49,4 @@ if __name__ == "__main__":
     start_http_server(PROMETHEUS_PORT)
     while True:
         time.sleep(100)
+        exit(0)
