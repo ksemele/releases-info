@@ -3,11 +3,12 @@ import requests
 import sys
 import yaml
 from datetime import datetime
-import releases_info.constants as const
-from .kubernetes import *
-from .setup import ic
+from .config import *
+from .image import Image
+from .types import Any
 
-
+# https://docs.docker.com/docker-hub/api/latest/
+#
 docker_hub_registry = "https://hub.docker.com"
 token = os.environ.get("DOCKER_PASSWORD")
 number_of_load_tags = os.environ.get(
@@ -15,15 +16,15 @@ number_of_load_tags = os.environ.get(
 )  # 100 is max for free API
 
 
-def fetch_config_yaml(file_path):
-    """Fetch config.yaml."""
-    with open(file_path, "r") as file:
-        try:
-            config = yaml.safe_load(file)
-            return config
-        except yaml.YAMLError as e:
-            print(f"Error while reading YAML file: {e}")
-            return None
+# def fetch_config_yaml(file_path):
+#     """Fetch config.yaml."""
+#     with open(file_path, "r") as file:
+#         try:
+#             config = yaml.safe_load(file)
+#             return config
+#         except yaml.YAMLError as e:
+#             print(f"Error while reading YAML file: {e}")
+#             return None
 
 
 def _fetch_all_releases(docker_hub_repository) -> dict:
@@ -94,54 +95,55 @@ def _get_tag_release_date(tag, releases):
         raise ValueError(f"[{tag}] Not exist in releases")  # in last 100 releases
     return tag_release_date
 
+## WIP New funcs
+def _search_image_tag(img: Image) -> bool:
+    """
+    Check if image tag exists in repository
 
-def get_services_releases(services):
-    # services = config.values()
-    # print(services)
-    # print()
-    # service_list = [{'name': service, 'details': details} for service, details in services]
+    Args:
+        img: Image object to check
 
-    # dockerhub_list = [{'name': service, 'details': details} for service, details in services.items() if 'dockerhub' in details]  # todo
+    Returns:
+        bool: True if tag exists, False otherwise
+    """
+    result = img.check_repository_tag()
+    ic(result)
 
-    # print("")
-    # print("Service List:")
-    result_releases_list = {}
-    for service, data in services.items():
-        current_tag = data.get("version")
-        dockerhub = data.get("dockerhub")
-        repo = (
-            f"{data.get('dockerhub').get('owner')}/{data.get('dockerhub').get('repo')}"
-        )
-        service_releases = _fetch_all_releases(docker_hub_repository=repo)
-        if service_releases:
-            # I use first elem of list because I get tags sorted in _fetch_all_releases()
-            # Maybe 'latest' will be more correct
-            latest_tag_date = _dockerhub_date_format(
-                service_releases["results"][0]["last_updated"]
-            )
+    if result["status"] == "success":
+        print(f"✅ Tag found: {img.tag} in {img.get_repository()}")
+        return True
+    else:
+        print(f"❌ {result['message']}")
+        if "response" in result:
+            print(f"   API response: {result['response']}")
+        return False
 
-            if _tag_exist_in_releases(tag=current_tag, releases=service_releases):
-                current_tag_date = _get_tag_release_date(
-                    tag=current_tag, releases=service_releases
-                )
-                days_of_missed_releases = _days_of_missed_releases(
-                    current_tag_date=current_tag_date, latest_tag_date=latest_tag_date
-                )
-                # print(
-                #     f"{service}:{current_tag}\t{current_tag_date} -> {service_releases['results'][0]['name']}\t{latest_tag_date}\toutdated: [{days_of_missed_releases}] days"
-                # )
-                result_releases_list[str(f'{service}:{current_tag}')] = current_tag_date
 
-                pass
-            else:
-                ic(current_tag, "Not exist")
+def process_single_image(image: str) -> dict[str, Any]:
+    """Process a single docker image and return its status"""
+    try:
+        img = Image.from_string(image)
+        success = _search_image_tag(img)
 
-    # ic.configureOutput(includeContext=False)
-    # ic.configureOutput(prefix=f"{service}:{current_tag}\t{current_tag_date} -> {service_releases['results'][0]['name']}\t{latest_tag_date}\toutdated: [{days_of_missed_releases}] days\n")
-    ic(result_releases_list)
+        return {
+            "image": img,
+            "status": "success" if success else "error",
+            "timestamp": datetime.now(),
+        }
+    except Exception as e:
+        return {
+            "image": image,
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now(),
+        }
 
-    # print("\nDockerhub List:")
-    # for service in dockerhub_list:
-    #     print(f"- Name: {service['name']}")
-    #     print(f"  Details: {service['details']}")
-    #     print()
+
+def get_image_tag(image: str) -> list:
+    """Get list tags for a docker image"""
+    img = Image.from_string(image)
+    releases = _fetch_all_releases(img.get_repository())
+    if releases is None:
+        return {"status": "error", "message": "Repository not found"}
+    tags = _get_formatted_releases(releases)
+    return {"status": "success", "tags": tags}

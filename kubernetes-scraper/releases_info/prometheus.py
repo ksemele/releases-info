@@ -1,7 +1,6 @@
-from prometheus_client import Info
-from .kubernetes import *
-import releases_info.constants as const
-from .setup import ic
+# from prometheus_client import Info
+# from .kubernetes import *
+from .config import *
 
 
 # Creating a metric with specified labels
@@ -14,4 +13,3 @@ def generate_metrics(images):
     for image in images:
         image_name, image_version = image.rsplit(":", 1)
         image_versions.labels(image_name=image_name).info({"version": image_version})
-

@@ -1,7 +1,17 @@
 import re
-from .kubernetes import *
-from .setup import *
-
+from .config import *
+from .constants import *  # добавляем импорт констант
+__all__ = [
+    "get_unique_images_from_pods",
+    "concat_images_to_str",
+    "save_str_to_file",
+    "create_or_update_configmap",
+    "create_or_update_configmap_from_file",
+    
+    "get_all_images",
+    "get_unique_images",
+    "get_unique_dockerhub_images",
+]
 
 def get_unique_images_from_pods():
     unique_images = {}
@@ -93,17 +103,55 @@ def create_or_update_configmap_from_file(configmap_name, filename, namespace=NAM
 # configmap_name = 'scraper-configmap-2'
 # save_configmap_from_data(configmap_name, data, namespace='default')
 
+# curl -G 'http://prometheus-operated.default.svc.cluster.local:9090/api/v1/query' --data-urlencode 'query=count by (container, image) (kube_pod_container_info)' | jq
 
-if __name__ == "__main__":
-    unique_images = get_unique_images_from_pods()
-    # print(unique_images) ## todo
+from prometheus_api_client import PrometheusConnect
+import json
+import requests
+from .types import Any, List, Dict
+from urllib3.exceptions import InsecureRequestWarning
 
-    config_yaml = concat_images_to_str(images=unique_images)
-    print(config_yaml)
-    filename = "config.yaml"
-    print(f"{CONFIG_NAME}")
-    save_data_to_file(config_yaml, filename)
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-    # filename = 'config.yaml'
-    configmap_name = "scraper-configmap"
-    save_configmap_from_file(configmap_name, filename, namespace="default")
+
+def query_prometheus(prometheus_url: str, query: str) -> Dict[str, Any]:
+    try:
+        response = requests.get(
+            url=f"{prometheus_url}/api/v1/query",
+            params={"query": query},
+            verify=False,
+            timeout=10,
+        )
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"Error making request: {e}")
+        return {}
+
+
+def get_all_images(prometheus_url: str) -> List[str]:
+    """
+    Get list of images from Prometheus.
+
+    Args:
+        prometheus_url: Base URL of Prometheus server with port (e.g., "http://localhost:9090")
+
+    Returns:
+        List[str]: List of image names
+    """
+    query = "count by (container, image) (kube_pod_container_info)"
+    result = query_prometheus(prometheus_url, query)
+
+    images = []
+    if result and "data" in result and "result" in result["data"]:
+        for metric in result["data"]["result"]:
+            if "metric" in metric and "image" in metric["metric"]:
+                images.append(metric["metric"]["image"])
+
+    return images
+
+def get_unique_images(prometheus_url: str) -> List[str]:
+    return list(set(get_all_images(prometheus_url)))
+
+def get_unique_dockerhub_images(prometheus_url: str) -> List[str]:
+    return list(set([img for img in get_all_images(prometheus_url) if img.startswith("docker.io/")]))
