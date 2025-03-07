@@ -8,6 +8,7 @@ REQUIRED = [
     "PyYAML>=6.0.1",
     "icecream>=2.1.3",
     "urllib3>=2.2.0",
+    "aiohttp>=3.9.0",
 ]
 
 EXTRAS = {
